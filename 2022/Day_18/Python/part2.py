@@ -1,10 +1,19 @@
+from time import time
+
 #file = '../data/small_test'
-file = '../data/test'
-#file = '../data/input'
+#file = '../data/test'
+file = '../data/input'
 
 with open(file) as f:
     cubes = [tuple([int(it) for it in item.rstrip().split(',')]) for item in f.readlines()]
     cubes = set(cubes)
+
+min_x, max_x = min([x[0] for x in cubes]), max([x[0] for x in cubes])
+min_y, max_y = min([y[1] for y in cubes]), max([y[1] for y in cubes])
+min_z, max_z = min([z[2] for z in cubes]), max([z[2] for z in cubes])
+nghbs = [(0, 0, -1), (0, 0, 1), (0, -1, 0), (0, 1, 0), (-1, 0, 0), (1, 0, 0)]
+seen, visited = set(), set()
+visited.add((0,0,0))
 
 def allNeighboursCubes(cubes, cube):
     return findNumNeighbours(cubes, cube) == 6
@@ -19,19 +28,35 @@ def findNumNeighbours(cubes, cube):
     
     return num
 
-def isNotInPocket(cubes, air, visited, cubes_in_pockets, min_x, max_x, min_y, max_y, min_z, max_z):
-    if air in cubes or air in visited: 
-        cubes_in_pockets[0] += 1
-        return False
-    elif air[0] < min_x or air[0] > max_x or air[1] < min_y or air[1] > max_y or air[2] < min_z or air[2] > max_z: return True, visited
-    else:
-        neighbours = [[0, 0, -1], [0, 0, 1], [0, -1, 0], [0, 1, 0], [-1, 0, 0], [1, 0, 0]]
-        visited.add(air)
-        for nghb in neighbours:
-            passes = isNotInPocket((air[0]+nghb[0], air[1]+nghb[1], air[2]+nghb[2]))
-            if passes:
-                return passes
-        return passes
+def reachEverySide():
+    global visited, seen, nghbs
+    for point in visited:
+        x,y,z = point
+        for nghb in nghbs:
+            if (x+nghb[0], y+nghb[1], z+nghb[2]) in cubes:
+                seen.add((point, (x+nghb[0], y+nghb[1], z+nghb[2])))
+    return len(seen)
+
+
+def findAllReachablePoints():
+    global visited, nghbs
+    while True:
+        tmp = visited.copy()
+        for point in visited:
+            x,y,z = point
+            for nghb in nghbs:
+                if x+nghb[0] < min_x - 1 or x+nghb[0] > max_x+1 or y+nghb[1] < min_y - 1 or y+nghb[1] > max_y + 1 or z+nghb[2] < min_z - 1 or z+nghb[2] > max_z + 1:
+                    continue
+                elif (x+nghb[0], y+nghb[1], z+nghb[2]) in cubes:
+                    continue
+                else:
+                    tmp.add((x+nghb[0], y+nghb[1], z+nghb[2]))
+        if len(tmp) == len(visited):
+            break
+        visited = tmp
+
+
+
         
 def findAllUncoveredSides(cubes):
     uncovered_sides = 0
@@ -40,20 +65,13 @@ def findAllUncoveredSides(cubes):
 
     return uncovered_sides
 
-def findAllAirPockets(cubes):
-    min_x, max_x, min_y, max_y, min_z, max_z = min([x[0] for x in cubes]), max([x[0] for x in cubes]), min([y[1] for y in cubes]), max([y[1] for y in cubes]), min([z[2] for z in cubes]), max([z[2] for z in cubes])
-    pockets = []
-    for i in range(min_x-1, max_x+1):
-        for j in range(min_y-1, max_y+1):
-            for l in range(min_z-1, max_z+1):
-                cubes_in_pockets = [0]
-                is_not_in = isNotInPocket(cubes, (i,j,l), visited, cubes_in_pockets, min_x, max_x, min_y, max_y, min_z, max_z)
-                if not is_not_in:
-                    
 
-    return pockets
 
-p1 = findAllUncoveredSides(cubes)
-passes, visited = findAllAirPockets(cubes)
-
-print()
+#p1 = findAllUncoveredSides(cubes)
+start = time()
+findAllReachablePoints()
+reachEverySide()
+p2 = len(seen)
+end = time()
+print('Answer is: ',p2)
+print('Took ' , end - start, 'seconds to arrive at that!')
