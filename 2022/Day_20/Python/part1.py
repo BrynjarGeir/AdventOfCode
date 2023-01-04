@@ -14,7 +14,6 @@ with open(file) as f:
 pos_of_zero = None
 n = len(inps)
 
-
 order = []
 head = Node(inps[0])
 if head.value == 0:
@@ -37,9 +36,9 @@ order = [head] + order
 
 def move(node):
     if node.value > 0:
-        moveForward(node, node.value)
+        moveForward(node, node.value % (n-1))
     elif node.value < 0:
-        moveBackwards(node, -node.value)
+        moveBackwards(node, -node.value % (n-1))
 
 def moveForward(node, iters):
     for _ in range(iters):
@@ -58,20 +57,20 @@ def moveBackwards(node, iters):
         node.next = node.prev
         node.prev = node.prev.prev
         node.prev.next = node
+        node.next.prev = node
         node.next.next = tmp
         tmp.prev = node.next
-
 
 for node in order:
     move(node)
 
-def findNumbers(node, n):
+def findNumbers(node):
     one = 1000 - (1000 // n) * n
     two = 2000 - (2000 // n) * n
     three = 3000 - (3000 // n) * n
     a,b,c = None, None, None
 
-    for i in range(n):
+    for i in range(max(one+1, two+1, three+1)):
         if i == one:
             a = node.value
         if i == two:
@@ -81,6 +80,28 @@ def findNumbers(node, n):
         node = node.next
     return a,b,c
 
-a,b,c = findNumbers(order[pos_of_zero], n)
+def findNumber(node, value):
+    for i in range(n):
+        if node.value == value:
+            return i, True
+        node = node.next
+    return i, False
 
+def findSpecificNumbers(node, a, b, c):
+    one, two, three = None, None, None
+    for i in range(n):
+        if node.value == a:
+            one = i
+        if node.value == b:
+            two = i
+        if node.value == c:
+            three = i
+        if all((one, two, three)): break
+        node = node.next
+    return one, two, three
+        
+
+a,b,c = findNumbers(order[pos_of_zero])
+
+print(a,b,c)
 print(a + b + c)
