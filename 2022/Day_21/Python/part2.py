@@ -1,41 +1,51 @@
 #file = '../data/test'
 file = '../data/input'
 
-import sympy as sym
+from sympy import Symbol
+from sympy.solvers import solve
 
 with open(file) as f:
     lines = [line.split(': ') for line in f.readlines()]
     lines = [[line[0], line[1].split()] if len(line[1].split()) > 1 else [line[0], int(line[1])] for line in lines]
 
-operators = {'*': lambda x: x[0] * x[1], '/': lambda x: x[0] // x[1], '-': lambda x: x[0] - x[1], '+': lambda x: x[0] + x[1]}
+operators = {'*': lambda x: x[0] * x[1], '/': lambda x: x[0] / x[1], '-': lambda x: x[0] - x[1], '+': lambda x: x[0] + x[1], '=': lambda x: x}
 monkeys = {}
 
 for line in lines:
     monkey = line[0]
     monkeys[monkey] = line[1]
 
-monkeys['humn']
+x = Symbol('x')
+monkeys['humn'] = x
+monkeys['root'][1] = '='
 
 def figure_out(monkeys):
     change = True
     while change:
         change = False
         for monkey in monkeys:
-            if isinstance(monkeys[monkey], int):
+            if not isinstance(monkeys[monkey], list):
                 continue
-            elif isinstance(monkeys[monkey][0], int) and isinstance(monkeys[monkey][2], int):
+            elif not isinstance(monkeys[monkey][0], str) and not isinstance(monkeys[monkey][2], str):
                 fun = operators[monkeys[monkey][1]]
                 t = (monkeys[monkey][0], monkeys[monkey][2])
                 updated = fun(t)
                 monkeys[monkey] = updated
             else:
-                if not isinstance(monkeys[monkey][0], int) and isinstance(monkeys[monkeys[monkey][0]], int):
+                if isinstance(monkeys[monkey][0], str) and not isinstance(monkeys[monkeys[monkey][0]], list):
                     monkeys[monkey][0] = monkeys[monkeys[monkey][0]]
-                if not isinstance(monkeys[monkey][2], int) and isinstance(monkeys[monkeys[monkey][2]], int):
+                if isinstance(monkeys[monkey][2], str) and not isinstance(monkeys[monkeys[monkey][2]], list):
                     monkeys[monkey][2] = monkeys[monkeys[monkey][2]]
             
             change = True
 
 figure_out(monkeys)
 
-print(monkeys['root'])
+eq = monkeys['root']
+ans = solve(eq[0] - eq[1], x)
+
+print(eq)
+print(ans[0])
+
+#for monkey in monkeys:
+#    print(monkey, ':', monkeys[monkey])
