@@ -2,8 +2,8 @@ import re
 from time import time, sleep
 from collections import defaultdict
 
-#file = '../data/test'
-file = '../data/input'
+file = '../data/test'
+#file = '../data/input'
 
 with open(file) as f:
     lines = [line.rstrip() for line in f.readlines()]
@@ -15,7 +15,6 @@ instructions = re.split('(R|L)', instructions)
 
 instructions = [int(i) if i.isdigit() else i for i in instructions]
 
-# Loop over the input and note tiles and walls
 def populateWallsTiles(grid):
     walls, tiles = set(), set()
     position, rows,cols = None, -1, -1
@@ -30,7 +29,6 @@ def populateWallsTiles(grid):
         rows, cols = max(rows, i+1), max(cols, j+1)
     return walls, tiles, rows, cols, position
 
-# Just helping with figuring out the sidelength
 def getRange(walls, tiles, rows, cols):
     min_cols, max_cols, min_rows, max_rows = [None for _ in range(cols)], [None for _ in range(cols)], [None for _ in range(rows)], [None for _ in range(rows)]
 
@@ -46,7 +44,6 @@ def getRange(walls, tiles, rows, cols):
 
     return rnge
 
-# Walk a certain distance in a certain direction
 def walk(position, distance, facing, corners, sidelength, move, walls, tiles):
     for _ in range(distance):
         direction = move[facing]
@@ -54,7 +51,7 @@ def walk(position, distance, facing, corners, sidelength, move, walls, tiles):
             position = (position[0]+direction[0], position[1]+direction[1])
         elif (position[0]+direction[0], position[1]+direction[1]) in walls:
             break
-        else:           
+        else:
             index = getOrderOnSide(position, sidelength)
             face = getFace(position, corners, sidelength)
             new_position = getSide(face, facing, sidelength)[index]
@@ -65,7 +62,6 @@ def walk(position, distance, facing, corners, sidelength, move, walls, tiles):
                 position = new_position
             else:
                 break
-
     return position, facing
 
 # Finding our sidelength of each face to simplify a lot of other stuff
@@ -102,7 +98,6 @@ def getPassword(position, facing):
     password = position[0] * 1000 + position[1] * 4 + facing
     return password
 
-# Check if point is in the corner of face
 def isCornerPoint(walls, tiles, sidelength, point):
     if point in walls or point not in tiles:
         return False
@@ -112,7 +107,6 @@ def isCornerPoint(walls, tiles, sidelength, point):
         return True
     return False
 
-# Check if point is on the side of face (outer point but not cornerpoint)
 def isSidePoint(walls, tiles, sidelength, point):
     if point in walls or point not in tiles or isCornerPoint(walls, tiles, sidelength, point):
         return False
@@ -122,37 +116,37 @@ def isSidePoint(walls, tiles, sidelength, point):
         return True
     return False
 
-# Get all possible points if going over side with direction <-- gotta change this for the input because of shape
+# Gett all possible points if going over side with direction
 def getSide(face, direction, sidelength):
     side = None
-    if face == 1 and direction == 2:
-        side = [(x, 0) for x in range(sidelength*3-1, sidelength * 2-1, -1)]
+    if face == 1 and direction == 0:
+        side = [(sidelength * 3-1, y) for y in range(sidelength * 4-1, sidelength * 3 - 1, -1)]
+    elif face == 1 and direction == 2:
+        side = [(sidelength, y) for y in range(sidelength, sidelength * 2)]
     elif face == 1 and direction == 3:
-        side = [(0, y) for y in range(sidelength*2,sidelength*3)]
-    elif face == 2 and direction == 0:
-        side = [(x, sidelength*2-1) for x in range(sidelength*3-1,sidelength*2-1,-1)]
+        side = [(sidelength, y) for y in range(sidelength*3-1,sidelength*2-1, -1)]
     elif face == 2 and direction == 1:
-        side = [(x, sidelength*2-1) for x in range(sidelength, sidelength*2)]
+        side = [(sidelength*3-1, y) for y in range(sidelength*3-1,sidelength*2-1, -1)]
+    elif face == 2 and direction == 2:
+        side = [(sidelength*3-1, y) for y in range(sidelength*4-1, sidelength*3-1, -1)]
     elif face == 2 and direction == 3:
-        side = [(sidelength*4-1, y) for y in range(sidelength)]
-    elif face == 3 and direction == 0:
-        side = [(sidelength-1, y) for y in range(sidelength*2,sidelength*3)]
-    elif face == 3 and direction == 2:
-        side = [(sidelength*2, y) for y in range(sidelength)]
+        side = [(0, y) for y in range(sidelength*3-1,sidelength*2-1, -1)]
+    elif face == 3 and direction == 1:
+        side = [(x, sidelength*2) for x in range(sidelength*3-1,sidelength*2-1, -1)]
+    elif face == 3 and direction == 3:
+        side = [(x, sidelength*2) for x in range(sidelength)]
     elif face == 4 and direction == 0:
-        side = [(x, sidelength*3-1) for x in range(sidelength-1, -1, -1)]
-    elif face == 4 and direction == 1:
-        side = [(x, sidelength-1) for x in range(sidelength*3, sidelength*4)]
+        side = [(sidelength*2, y) for y in range(sidelength*4-1, sidelength*3-1, -1)]
+    elif face == 5 and direction == 1:
+        side = [(sidelength*2-1, y) for y in range(sidelength-1, -1, -1)]
     elif face == 5 and direction == 2:
-        side = [(x, sidelength) for x in range(sidelength-1, -1, -1)]
-    elif face == 5 and direction == 3:
-        side = [(x, sidelength) for x in range(sidelength, sidelength*2)]
+        side = [(sidelength*2-1, y) for y in range(sidelength*2-1, sidelength-1, -1)]
     elif face == 6 and direction == 0:
-        side = [(sidelength*3-1, y) for y in range(sidelength, sidelength*2)]
+        side = [(x, sidelength*3-1) for x in range(sidelength-1, -1, -1)]
     elif face == 6 and direction == 1:
-        side = [(0, y) for y in range(sidelength*2, sidelength*3)]
-    elif face == 6 and direction == 2:
-        side = [(0, y) for y in range(sidelength, sidelength*2)]
+        side = [(0, y) for y in range(sidelength*2-1, sidelength-1, -1)]
+    elif face == 6 and direction == 3:
+        side = [(x, sidelength*3-1) for x in range(sidelength*2-1, sidelength-1, -1)]
 
     return side
 
@@ -166,48 +160,59 @@ def getOrderOnSide(point, sidelength):
     elif y == 0 or y + 1 == sidelength:
         return x
 
-# Returns a dictionary that has the upper right corner points of every face (key 1-6 and points value)
 def getCornerPoints(sidelength):
     corners = {}
-    corners[1] = (0, sidelength)
-    corners[2] = (0, sidelength*2)
+    corners[1] = (0, sidelength*2)
+    corners[2] = (sidelength, 0)
     corners[3] = (sidelength, sidelength)
-    corners[4] = (sidelength*2, sidelength)
-    corners[5] = (sidelength*2, 0)
-    corners[6] = (sidelength*3, 0)
+    corners[4] = (sidelength, sidelength*2)
+    corners[5] = (sidelength*2, sidelength*2)
+    corners[6] = (sidelength*2, sidelength*3)
     return corners
+
+def getOpenOuterPoints(walls, starting_point, sidelength):
+    outer_points = set()
+    for i in range(sidelength):
+        for j in range(sidelength):
+            point = (starting_point[0]+i, starting_point[1]+j)
+            if point in walls:
+                continue
+            elif isCornerPoint(walls, tiles, sidelength, point) or isSidePoint(walls, tiles, sidelength, point):
+                outer_points.add(point)
+    return outer_points
 
 # Find the face that a certain point is on
 def getFace(point, corners, sidelength):
     x, y = point
     for corner in corners:
-        if x < corners[corner][0] + sidelength and y < corners[corner][1] + sidelength and x >= corners[corner][0] and y >= corners[corner][1]:
+        if x <= corners[corner][0] + sidelength and y <= corners[corner][1] + sidelength and x >= corners[corner][0] and y >= corners[corner][1]:
             return corner
     return None
 
 # Update facing if we switch the face we are on       
 def getFacing(pre_face, post_face):
     if pre_face == 1:
-        return 0
-    elif pre_face == 2:
-        if post_face == 3 or post_face == 4:
+        if post_face == 6:
             return 2
-        else:
+        elif post_face == 2 or post_face == 3:
+            return 1
+    elif pre_face == 2:
+        if post_face == 5 or post_face == 6:
             return 3
+        elif post_face == 1:
+            return 1
     elif pre_face == 3:
-        if post_face == 2:
-            return 3
-        else:
-            return 1
-    elif pre_face == 4:
-        return 2
-    elif pre_face == 5:
         return 0
+    elif pre_face == 4:
+        return 1
+    elif pre_face == 5:
+        return 3
     elif pre_face == 6:
-        if post_face == 1 or post_face == 2:
-            return 1
-        else:
-            return 3
+        if post_face == 1 or post_face == 4:
+            return 2
+        elif post_face == 2:
+            return 0
+
 
 start = time()
 walls, tiles, rows, cols, position = populateWallsTiles(grid)
