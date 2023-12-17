@@ -15,15 +15,12 @@ for line in lines:
 
 time = 30
 paths = [['AA']]
-values = [0]
 opn = defaultdict(lambda: False)
 
-for i in range(time):
+for i in range(0,time,2):
+    tmp_paths = paths
     for index, path in enumerate(paths):
         if not opn[path[-1]]:
-            values[index] += (time-i-1) * flow_rate[path[-1]]
             opn[path[-1]] = True
-        for goes_to in leads_to[path[-1]]:
-            
-        
-print(paths)
+
+print("HERE")
