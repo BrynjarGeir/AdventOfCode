@@ -1,17 +1,16 @@
-from itertools import combinations
 from pprint import pp
 import numpy as np
 
 input_path = './data/day10/input.txt'
 test_path = './data/day10/test.txt'
 
-with open(test_path, 'r') as f:
+with open(input_path, 'r') as f:
     lines = f.readlines()
     lines = [line.strip() for line in lines]
     lines = [list(line) for line in lines]
     grid = [[int(c) for c in line] for line in lines]
 
-def creatGraph(grid):
+def createGraph(grid):
     graph, starts, r, c = {}, [], len(grid), len(grid[0])
     for i, row in enumerate(grid):
         for j, v in enumerate(row):
@@ -39,19 +38,39 @@ def creatGraph(grid):
                     graph[(i,j)] = [(i-1, j)]
     return graph, starts
 
-def dfs(graph, grid, pos, paths):
+def dfs(graph, grid, pos, paths, path):
     if pos not in graph:
         if grid[pos[0]][pos[1]] == 9:
-            paths[0] += 1
+            paths.append(path + [pos])
     else:
         for p in graph[pos]:
-            dfs(graph, grid, p, paths)
+            dfs(graph, grid, p, paths, path + [pos])
 
 def part1(grid):
-    graph, starts = creatGraph(grid)
-    paths = [0]
-    dfs(graph, grid, (0,2), paths)
+    graph, starts = createGraph(grid)
+    paths = []
+    for start in starts:
+        dfs(graph, grid, start, paths, [])
 
-    return paths[0]
+    startEnds = {}
+    for path in paths:
+        start, end = path[0], path[-1]
+        if start in startEnds:
+            startEnds[start].add(end)
+        else:
+            startEnds[start] = set([end])
+    res = 0
+    for start in startEnds:
+        res += len(startEnds[start])
+    return res
 
-print(f"Part 1: {part1(grid)}")           
+def part2(grid):
+    graph, starts = createGraph(grid)
+    paths = []
+    for start in starts:
+        dfs(graph, grid, start, paths, [])
+    return len(paths)
+
+
+print(f"Part 1: {part1(grid)}")
+print(f"Part 2: {part2(grid)}")
